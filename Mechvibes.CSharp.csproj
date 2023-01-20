@@ -102,10 +102,6 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="WinTitleBitmaps">
-      <HintPath>..\WinTitleBitmaps\bin\Release\WinTitleBitmaps.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioRange.cs" />
@@ -245,6 +241,11 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Innerlibs\InnerLibs\InnerLibs.csproj">
+      <Project>{5dbfd808-f97c-4fe0-b6af-076dd31fc1bb}</Project>
+      <Name>InnerLibs</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

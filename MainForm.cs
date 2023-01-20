@@ -1,4 +1,5 @@
 ﻿using Gma.System.MouseKeyHook;
+using InnerLibs;
 using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -65,9 +66,9 @@ namespace Mechvibes.CSharp
 			btnShowSoundPackFolder.Click += new EventHandler(Unfocus);
 			btnOpenSoundEditor.Click += new EventHandler(Unfocus);
 
-			picMinimizeToSystemTray.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.DownArrow];
-			picMinimize.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.Minimize];
-			picClose.Image = Bitmaps.Instance[32, Color.Black, Color.White, BitmapType.Close];
+			//picMinimizeToSystemTray.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.DownArrow];
+			//picMinimize.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.Minimize];
+			//picClose.Image = Bitmaps.Instance[32, Color.Black, Color.White, BitmapType.Close];
 
 			Bitmap iconBitmap = new Bitmap(32, 32);
 			using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
@@ -168,7 +169,7 @@ namespace Mechvibes.CSharp
 
 		#region SoundPack Management
 
-		private readonly string mechvibesFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\mechvibes_custom";
+		private readonly string mechvibesFolder = $"{Application.StartupPath}/mechvibes_custom/";
 		private readonly List<SoundPack> soundpacks = new List<SoundPack>();
 		private SoundPack currentSoundpack;
 
@@ -346,9 +347,9 @@ namespace Mechvibes.CSharp
 
 		private void LoadSoundPacks()
 		{
-			foreach (string soundpack in Directory.EnumerateDirectories(mechvibesFolder))
+			foreach (var soundpack in mechvibesFolder.CreateDirectoryIfNotExists().GetDirectories())
 			{
-				if (SoundPackHelper.IsMultikeyPack(soundpack + "\\config.json") == true)
+				if (SoundPackHelper.IsMultikeyPack(soundpack.FullName + "\\config.json") == true)
 				{
 					SoundPack mechvibesPack = SoundPackHelper.LoadFromManifest(soundpack + "\\config.json");
 
@@ -453,7 +454,7 @@ namespace Mechvibes.CSharp
 
 		private async void Keyboard_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (e.KeyCode == prevKey) await Task.Run(() => prevKey = Keys.None );
+			if (e.KeyCode == prevKey) await Task.Run(() => prevKey = Keys.None);
 		}
 
 		private void SoundPackSelected(object sender, EventArgs e)
@@ -471,7 +472,7 @@ namespace Mechvibes.CSharp
 
 		private void ReloadSoundPacks(object sender, EventArgs e) => LoadDefaultPacks();
 
-		private void OpenSoundPackFolder(object sender, EventArgs e) => Process.Start("explorer.exe", mechvibesFolder);
+		private void OpenSoundPackFolder(object sender, EventArgs e) => Process.Start("explorer.exe", mechvibesFolder.CreateDirectoryIfNotExists().FullName);
 
 		private void OpenSoundEditor(object sender, EventArgs e)
 		{
