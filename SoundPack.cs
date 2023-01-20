@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using InnerLibs;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Mechvibes.CSharp
 {
-	internal class SoundPack
+	internal class SoundPack : JsonFile
 	{
 		private readonly string packName;
 		private readonly List<Keymap> keybinds;
