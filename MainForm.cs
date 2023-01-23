@@ -58,9 +58,9 @@ namespace Mechvibes.CSharp
             btnShowSoundPackFolder.Click += new EventHandler(Unfocus);
             btnOpenSoundEditor.Click += new EventHandler(Unfocus);
 
-            //picMinimizeToSystemTray.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.DownArrow];
-            //picMinimize.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.Minimize];
-            //picClose.Image = Bitmaps.Instance[32, Color.Black, Color.White, BitmapType.Close];
+            picMinimizeToSystemTray.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.tray).Resize(picMinimizeToSystemTray.Size);
+            picMinimize.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.minimize).Resize(picMinimize.Size);
+            picClose.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.close).Resize(picClose.Size);
 
             Bitmap iconBitmap = new Bitmap(32, 32);
             using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
@@ -153,6 +153,7 @@ namespace Mechvibes.CSharp
         private void cmbSelectedSoundPack_SelectedIndexChanged(object sender, EventArgs e)
         {
             ActivatePack(cmbSelectedSoundPack.Text);
+            textBox1.Focus();
         }
 
         private void DownloadDefaultPacks()
@@ -511,6 +512,11 @@ namespace Mechvibes.CSharp
             /// Window is minimized to the system tray
             /// </summary>
             MinimizedToTray
+        }
+
+        private void textBox1_Leave(object sender, EventArgs e)
+        {
+            textBox1.Clear();
         }
     }
 }

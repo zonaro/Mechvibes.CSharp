@@ -33,8 +33,8 @@ namespace Mechvibes.CSharp
             btnImportFromManifest.Click += new EventHandler(Unfocus);
             btnExportToManifest.Click += new EventHandler(Unfocus);
 
-            //picMinimize.Image = Bitmaps.Instance[32, Color.Gray, Color.White, BitmapType.Minimize];
-            //picClose.Image = Bitmaps.Instance[32, Color.Black, Color.White, BitmapType.Close];
+             picMinimize.Image = Properties.Resources.minimize.Resize(picMinimize.Size);
+             picClose.Image = Properties.Resources.close.Resize(picClose.Size);
 
             Bitmap iconBitmap = new Bitmap(32, 32);
             using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
