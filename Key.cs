@@ -1,6 +1,6 @@
 ﻿namespace Mechvibes.CSharp
 {
-	internal enum Key
+	public enum Key
 	{
 		Unsupported,
 

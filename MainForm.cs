@@ -1,9 +1,10 @@
 ﻿using Gma.System.MouseKeyHook;
 using InnerLibs;
+using InnerLibs.LINQ;
 using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,26 +21,17 @@ namespace Mechvibes.CSharp
 {
     public partial class MainForm : Form
     {
-        /// <summary>
-        /// Different states of the program
-        /// </summary>
-        public enum ProgramState
-        {
-            /// <summary>
-            /// Window is visible to the user
-            /// </summary>
-            Visible,
+        #region Private Fields
 
-            /// <summary>
-            /// Window is minimized the the taskbar
-            /// </summary>
-            Minimized,
+        private readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
+        private int audioVolume = 50;
+        private bool m_aeroEnabled = false;
+        private Keys prevKey = Keys.None;
 
-            /// <summary>
-            /// Window is minimized to the system tray
-            /// </summary>
-            MinimizedToTray
-        }
+        #endregion Private Fields
+
+        internal static readonly List<SoundPack> soundpacks = new List<SoundPack>();
+        internal Settings settings = new Settings();
 
         public MainForm()
         {
@@ -87,9 +79,11 @@ namespace Mechvibes.CSharp
                         case ProgramState.Minimized:
                             MinimizeWindow(this, EventArgs.Empty);
                             break;
+
                         case ProgramState.MinimizedToTray:
                             MinimizeToSystemTray(this, EventArgs.Empty);
                             break;
+
                         default: break;
                     }
 
@@ -98,7 +92,32 @@ namespace Mechvibes.CSharp
             t.Start();
         }
 
-        #region Basic Window Functionality
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                m_aeroEnabled = CheckAeroEnabled();
+
+                if (!m_aeroEnabled)
+                    cp.ClassStyle |= 0x20000;
+
+                return cp;
+            }
+        }
+
+        internal SoundPack CurrentSoundPack => soundpacks.FirstOrDefault(soundpack => soundpack.Active);
+
+        public ProgramState State { get; set; } = ProgramState.Visible;
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmIsCompositionEnabled(ref int pfEnabled);
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hWnd, int attr, ref int attrValue, int attrSize);
 
         [DllImport("user32.dll")]
         private static extern IntPtr LoadCursorFromFile(string lpFilename);
@@ -109,138 +128,31 @@ namespace Mechvibes.CSharp
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
-        public ProgramState State { get; set; } = ProgramState.Visible;
-
-        protected override void OnFormClosing(FormClosingEventArgs e)
+        private bool CheckAeroEnabled()
         {
-            base.OnFormClosing(e);
-
-            trayicon.Visible = false;
-            trayicon.Dispose();
-        }
-
-        private void DragForm(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
+            if (Environment.OSVersion.Version.Major >= 6)
             {
-                ReleaseCapture();
-                SendMessage(Handle, 161, 2, 0);
+                int enabled = 0;
+                DwmIsCompositionEnabled(ref enabled);
+
+                return enabled == 1;
             }
+
+            return false;
         }
-        private void UnminimizeWindowToNormal(object sender, EventArgs e)
-        {
-            Visible = true;
-            State = ProgramState.Visible;
-        }
-        private void MinimizeToSystemTray(object sender, EventArgs e)
-        {
-            Visible = false;
-            State = ProgramState.MinimizedToTray;
-        }
-        private void MinimizeWindow(object sender, EventArgs e)
-        {
-            WindowState = FormWindowState.Minimized;
-            State = ProgramState.Minimized;
-        }
+
+        private void Close_MouseEnter(object sender, EventArgs e) => picClose.BackColor = SystemColors.Control;
+
+        private void Close_MouseLeave(object sender, EventArgs e) => picClose.BackColor = Color.White;
+
         private void CloseWindow(object sender, EventArgs e)
         {
             Application.Exit();
         }
 
-        private void MinimizeSysTray_MouseEnter(object sender, EventArgs e) => picMinimizeToSystemTray.BackColor = SystemColors.Control;
-        private void MinimizeSysTray_MouseLeave(object sender, EventArgs e) => picMinimizeToSystemTray.BackColor = Color.White;
-
-        private void Minimize_MouseEnter(object sender, EventArgs e) => picMinimize.BackColor = SystemColors.Control;
-        private void Minimize_MouseLeave(object sender, EventArgs e) => picMinimize.BackColor = Color.White;
-
-        private void Close_MouseEnter(object sender, EventArgs e) => picClose.BackColor = SystemColors.Control;
-        private void Close_MouseLeave(object sender, EventArgs e) => picClose.BackColor = Color.White;
-
-        private void GitHubAccount_MouseEnter(object sender, EventArgs e) => lblGitHubAccount.Font = new Font("Segoe UI", 10.0f, FontStyle.Underline);
-        private void GitHubAccount_MouseLeave(object sender, EventArgs e) => lblGitHubAccount.Font = new Font("Segoe UI", 10.0f);
-
-        private void GitHubRepository_MouseEnter(object sender, EventArgs e) => lblGitHubRepository.Font = new Font("Segoe UI", 10.0f, FontStyle.Underline);
-        private void GitHubRepository_MouseLeave(object sender, EventArgs e) => lblGitHubRepository.Font = new Font("Segoe UI", 10.0f);
-
-        private void GitHubAccount_Click(object sender, EventArgs e) => Process.Start("https://github.com/zonaro");
-        private void GitHubRepository_Click(object sender, EventArgs e) => Process.Start("https://github.com/zonaro/Mechvibes.CSharp");
-
-        #endregion
-
-        #region SoundPack Management
-
-
-        private readonly List<SoundPack> soundpacks = new List<SoundPack>();
-        private SoundPack currentSoundpack;
-
-        private Keys prevKey = Keys.None;
-        private int audioVolume = 50;
-
-        protected override void OnLoad(EventArgs e)
+        private void cmbSelectedSoundPack_SelectedIndexChanged(object sender, EventArgs e)
         {
-            base.OnLoad(e);
-
-            DownloadDefaultPacks();
-
-            IKeyboardMouseEvents hook = Hook.GlobalEvents();
-            hook.KeyDown += Keyboard_KeyDown;
-            hook.KeyUp += Keyboard_KeyUp;
-
-            FormClosing += (s, ee) =>
-            {
-                hook.KeyDown -= Keyboard_KeyDown;
-                hook.KeyUp -= Keyboard_KeyUp;
-                hook.Dispose();
-
-                JObject settings = new JObject();
-                settings.Add(new JProperty("pack", cmbSelectedSoundPack.Text));
-                settings.Add(new JProperty("volume", numVolume.Value));
-                File.WriteAllText($"{Application.StartupPath}\\settings.json", settings.ToString().Replace("  ", "\t"));
-            };
-
-            if (!File.Exists($"{Application.StartupPath}\\settings.json"))
-                File.WriteAllText($"{Application.StartupPath}\\settings.json", "{" +
-                    "\n\t\"pack\": \"CherryMX Black - ABS keycaps\"," +
-                    "\n\t\"volume\": 50" +
-                    "\n}");
-            else
-            {
-                JObject settings = JObject.Parse(File.ReadAllText($"{Application.StartupPath}\\settings.json"));
-
-                if (settings.ContainsKey("pack"))
-                {
-                    string pack = settings.Value<string>("pack");
-
-                    if (soundpacks.Any(soundpack => soundpack.Name == pack))
-                    {
-                        cmbSelectedSoundPack.Text = pack;
-                        SoundPackSelected(this, e);
-                    }
-                    else File.WriteAllText($"{Application.StartupPath}\\settings.json", File.ReadAllText($"{Application.StartupPath}\\settings.json").Replace("\"pack\": \"" + pack + "\"", "\"pack\": \"CherryMX Black - ABS keycaps\""));
-                }
-                else
-                {
-                    settings.AddFirst(new JProperty("pack", "CherryMX Black - ABS keycaps"));
-                    File.WriteAllText($"{Application.StartupPath}\\settings.json", settings.ToString());
-                }
-
-                if (settings.ContainsKey("volume"))
-                {
-                    int volume = settings.Value<int>("volume");
-
-                    if (numVolume.Minimum <= volume && volume <= numVolume.Maximum)
-                    {
-                        numVolume.Value = volume;
-                        trckVolume.Value = volume;
-                    }
-                    else File.WriteAllText($"{Application.StartupPath}\\settings.json", File.ReadAllText($"{Application.StartupPath}\\settings.json").Replace("\"volume\": " + volume, "\"volume\": 50"));
-                }
-                else
-                {
-                    settings.Add(new JProperty("volume", 50));
-                    File.WriteAllText($"{Application.StartupPath}\\settings.json", settings.ToString());
-                }
-            }
+            ActivatePack(cmbSelectedSoundPack.Text);
         }
 
         private void DownloadDefaultPacks()
@@ -317,36 +229,108 @@ namespace Mechvibes.CSharp
             LoadSoundPacks();
         }
 
-        readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
-        private void LoadSoundPacks()
+        private void DragForm(object sender, MouseEventArgs e)
         {
-            cmbSelectedSoundPack.Items.Clear();
-
-            foreach (string defaultpack in Directory.EnumerateDirectories(SoundPacksPath))
+            if (e.Button == MouseButtons.Left)
             {
-                if (SoundPackHelper.IsMultikeyPack(defaultpack + "\\config.json") == true)
-                {
-                    SoundPack mechvibesPack = SoundPackHelper.LoadFromManifest(defaultpack + "\\config.json");
-
-                    soundpacks.Add(mechvibesPack);
-                    cmbSelectedSoundPack.Items.Add(mechvibesPack.Name);
-                }
-                else
-                {
-                    SingleKeySoundPack mechvibesPack = SoundPackHelper.LoadSingleKeyFromManifest(defaultpack + "\\config.json");
-
-                    soundpacks.Add(mechvibesPack);
-                    cmbSelectedSoundPack.Items.Add(mechvibesPack.Name);
-                }
+                ReleaseCapture();
+                SendMessage(Handle, 161, 2, 0);
             }
-
-            cmbSelectedSoundPack.Text = cmbSelectedSoundPack.Items[0].ToString();
-            currentSoundpack = soundpacks.Where(soundpack => soundpack.Name == cmbSelectedSoundPack.Text).First();
-
-
         }
 
+        private void GitHubAccount_Click(object sender, EventArgs e) => Process.Start("https://github.com/zonaro");
 
+        private void GitHubAccount_MouseEnter(object sender, EventArgs e) => lblGitHubAccount.Font = new Font("Segoe UI", 10.0f, FontStyle.Underline);
+
+        private void GitHubAccount_MouseLeave(object sender, EventArgs e) => lblGitHubAccount.Font = new Font("Segoe UI", 10.0f);
+
+        private void GitHubRepository_Click(object sender, EventArgs e) => Process.Start("https://github.com/zonaro/Mechvibes.CSharp");
+
+        private void GitHubRepository_MouseEnter(object sender, EventArgs e) => lblGitHubRepository.Font = new Font("Segoe UI", 10.0f, FontStyle.Underline);
+
+        private void GitHubRepository_MouseLeave(object sender, EventArgs e) => lblGitHubRepository.Font = new Font("Segoe UI", 10.0f);
+
+        private async void Keyboard_KeyDown(object sender, KeyEventArgs e)
+        {
+            GC.Collect();
+
+            await Task.Run(() =>
+            {
+                GC.Collect();
+
+                if (e.KeyCode != prevKey)
+                {
+                    if (CurrentSoundPack.IsMultikeyPack)
+                    {
+                        PlayAudio(CurrentSoundPack.GetBindedAudio(KeymapHelper.GetSoundPackKey(e.KeyCode, false)), audioVolume);
+                    }
+                    else
+                    {
+                        PlayTrimmedAudio(CurrentSoundPack.GetAudioFilePath(), audioVolume, CurrentSoundPack.GetBindedRange(KeymapHelper.GetSoundPackKey(e.KeyCode, false)));
+                    }
+
+                    prevKey = e.KeyCode;
+                }
+            });
+
+            GC.Collect();
+        }
+
+        private async void Keyboard_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == prevKey) await Task.Run(() => prevKey = Keys.None);
+        }
+
+        private void LoadSoundPacks(string ActiveText = null)
+        {
+            cmbSelectedSoundPack.Items.Clear();
+            soundpacks.Clear();
+            foreach (string f in Directory.EnumerateDirectories(SoundPacksPath))
+            {
+                SoundPack pack = new SoundPack() { FilePath = Path.Combine(f, "config.json") }.Load().LoadBinds();             
+           
+                soundpacks.Add(pack);
+                cmbSelectedSoundPack.Items.Add(pack.Name);
+            }
+
+            if (ActiveText.IsNotBlank())
+            {
+                cmbSelectedSoundPack.Text = ActivatePack(ActiveText).Name;
+            }
+            else
+            {
+                cmbSelectedSoundPack.SelectedIndex = 0;
+            }
+        }
+
+        private void Minimize_MouseEnter(object sender, EventArgs e) => picMinimize.BackColor = SystemColors.Control;
+
+        private void Minimize_MouseLeave(object sender, EventArgs e) => picMinimize.BackColor = Color.White;
+
+        private void MinimizeSysTray_MouseEnter(object sender, EventArgs e) => picMinimizeToSystemTray.BackColor = SystemColors.Control;
+
+        private void MinimizeSysTray_MouseLeave(object sender, EventArgs e) => picMinimizeToSystemTray.BackColor = Color.White;
+
+        private void MinimizeToSystemTray(object sender, EventArgs e)
+        {
+            Visible = false;
+            State = ProgramState.MinimizedToTray;
+        }
+
+        private void MinimizeWindow(object sender, EventArgs e)
+        {
+            WindowState = FormWindowState.Minimized;
+            State = ProgramState.Minimized;
+        }
+
+        private void OpenSoundEditor(object sender, EventArgs e)
+        {
+            SoundEditor soundEditor = new SoundEditor();
+            soundEditor.Shown += (s, ee) => soundEditor.Focus();
+            soundEditor.Show();
+        }
+
+        private void OpenSoundPackFolder(object sender, EventArgs e) => Process.Start("explorer.exe", SoundPacksPath.CreateDirectoryIfNotExists().FullName);
 
         private async void PlayAudio(string file, int volume)
         {
@@ -405,40 +389,16 @@ namespace Mechvibes.CSharp
             });
         }
 
-        private async void Keyboard_KeyDown(object sender, KeyEventArgs e)
-        {
-            GC.Collect();
-
-            await Task.Run(() =>
-            {
-                GC.Collect();
-
-                if (e.KeyCode != prevKey)
-                {
-                    if (currentSoundpack.GetType() == typeof(SoundPack))
-                        PlayAudio(currentSoundpack.GetBindedAudio(KeymapHelper.GetSoundPackKey(e.KeyCode, false)), audioVolume);
-                    else if (currentSoundpack.GetType() == typeof(SingleKeySoundPack))
-                    {
-                        SingleKeySoundPack soundpack = (SingleKeySoundPack)currentSoundpack;
-
-                        PlayTrimmedAudio(soundpack.AudioFile, audioVolume, soundpack.GetBindedRange(KeymapHelper.GetSoundPackKey(e.KeyCode, false)));
-                    }
-
-                    prevKey = e.KeyCode;
-                }
-            });
-
-            GC.Collect();
-        }
-
-        private async void Keyboard_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == prevKey) await Task.Run(() => prevKey = Keys.None);
-        }
+        private void ReloadSoundPacks(object sender, EventArgs e) => LoadSoundPacks();
 
         private void SoundPackSelected(object sender, EventArgs e)
         {
-            currentSoundpack = soundpacks.Where(soundpack => soundpack.Name == cmbSelectedSoundPack.Text).First();
+        }
+
+        private void UnminimizeWindowToNormal(object sender, EventArgs e)
+        {
+            Visible = true;
+            State = ProgramState.Visible;
         }
 
         private void VolumeChanged(object sender, EventArgs e)
@@ -449,65 +409,51 @@ namespace Mechvibes.CSharp
                 trckVolume.Value = audioVolume = (int)numVolume.Value;
         }
 
-        private void ReloadSoundPacks(object sender, EventArgs e) => LoadSoundPacks();
-
-        private void OpenSoundPackFolder(object sender, EventArgs e) => Process.Start("explorer.exe", SoundPacksPath.CreateDirectoryIfNotExists().FullName);
-
-        private void OpenSoundEditor(object sender, EventArgs e)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            SoundEditor soundEditor = new SoundEditor();
-            soundEditor.Shown += (s, ee) => soundEditor.Focus();
-            soundEditor.Show();
+            base.OnFormClosing(e);
+
+            trayicon.Visible = false;
+            trayicon.Dispose();
         }
 
-        #endregion
-
-        #region Custom Windows Drop Shadow
-
-        private bool m_aeroEnabled = false;
-
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
-
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hWnd, int attr, ref int attrValue, int attrSize);
-
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmIsCompositionEnabled(ref int pfEnabled);
-
-        private bool CheckAeroEnabled()
+        protected override void OnLoad(EventArgs e)
         {
-            if (Environment.OSVersion.Version.Major >= 6)
-            {
-                int enabled = 0;
-                DwmIsCompositionEnabled(ref enabled);
+            base.OnLoad(e);
 
-                return enabled == 1;
+            DownloadDefaultPacks();
+            settings = settings.Load();
+
+            IKeyboardMouseEvents hook = Hook.GlobalEvents();
+            hook.KeyDown += Keyboard_KeyDown;
+            hook.KeyUp += Keyboard_KeyUp;
+
+            FormClosing += (s, ee) =>
+            {
+                hook.KeyDown -= Keyboard_KeyDown;
+                hook.KeyUp -= Keyboard_KeyUp;
+                hook.Dispose();
+                settings.pack = cmbSelectedSoundPack.Text;
+                settings.volume = numVolume.Value.RoundInt();
+                settings.Save();
+            };
+
+            settings.pack = settings.pack.IfBlank("CherryMX Black - ABS keycaps");
+
+            if (soundpacks.Any(soundpack => soundpack.Name == settings.pack))
+            {
+                cmbSelectedSoundPack.Text = ActivatePack(settings.pack).Name;
             }
 
-            return false;
-        }
-
-        private struct MARGINS
-        {
-            public int leftWidth;
-            public int rightWidth;
-            public int topHeight;
-            public int bottomHeight;
-        }
-
-        protected override CreateParams CreateParams
-        {
-            get
+            if (!settings.volume.IsBetween(numVolume.Minimum.RoundInt(), numVolume.Maximum.RoundInt()))
             {
-                CreateParams cp = base.CreateParams;
-                m_aeroEnabled = CheckAeroEnabled();
-
-                if (!m_aeroEnabled)
-                    cp.ClassStyle |= 0x20000;
-
-                return cp;
+                settings.volume = 50;
             }
+
+            numVolume.Value = settings.volume;
+            trckVolume.Value = settings.volume;
+
+            settings.Save();
         }
 
         protected override void WndProc(ref Message m)
@@ -529,6 +475,42 @@ namespace Mechvibes.CSharp
             base.WndProc(ref m);
         }
 
-        #endregion
+        internal SoundPack ActivatePack(string Text)
+        {
+            return soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
+        }
+
+        private struct MARGINS
+        {
+            #region Public Fields
+
+            public int bottomHeight;
+            public int leftWidth;
+            public int rightWidth;
+            public int topHeight;
+
+            #endregion Public Fields
+        }
+
+        /// <summary>
+        /// Different states of the program
+        /// </summary>
+        public enum ProgramState
+        {
+            /// <summary>
+            /// Window is visible to the user
+            /// </summary>
+            Visible,
+
+            /// <summary>
+            /// Window is minimized the the taskbar
+            /// </summary>
+            Minimized,
+
+            /// <summary>
+            /// Window is minimized to the system tray
+            /// </summary>
+            MinimizedToTray
+        }
     }
 }
