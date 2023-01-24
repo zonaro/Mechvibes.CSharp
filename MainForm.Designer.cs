@@ -31,7 +31,11 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.pnlCaptionBar = new System.Windows.Forms.Panel();
+            this.picMinimizeToSystemTray = new System.Windows.Forms.PictureBox();
+            this.picMinimize = new System.Windows.Forms.PictureBox();
+            this.picClose = new System.Windows.Forms.PictureBox();
             this.lblTitle = new System.Windows.Forms.Label();
+            this.picIcon = new System.Windows.Forms.PictureBox();
             this.lblSoundPack = new System.Windows.Forms.Label();
             this.cmbSelectedSoundPack = new System.Windows.Forms.ComboBox();
             this.btnReloadSoundPacks = new System.Windows.Forms.Button();
@@ -40,29 +44,28 @@
             this.lblGitHubAccount = new System.Windows.Forms.Label();
             this.lblGitHubRepository = new System.Windows.Forms.Label();
             this.tooltip = new System.Windows.Forms.ToolTip(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             this.numVolume = new System.Windows.Forms.NumericUpDown();
             this.trckVolume = new System.Windows.Forms.TrackBar();
             this.trayicon = new System.Windows.Forms.NotifyIcon(this.components);
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.picSeparator2 = new System.Windows.Forms.PictureBox();
-            this.picSeparator3 = new System.Windows.Forms.PictureBox();
             this.picSeparator1 = new System.Windows.Forms.PictureBox();
             this.picCaptionBarSeparator = new System.Windows.Forms.PictureBox();
-            this.picMinimizeToSystemTray = new System.Windows.Forms.PictureBox();
-            this.picMinimize = new System.Windows.Forms.PictureBox();
-            this.picClose = new System.Windows.Forms.PictureBox();
-            this.picIcon = new System.Windows.Forms.PictureBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
+            this.label2 = new System.Windows.Forms.Label();
             this.pnlCaptionBar.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numVolume)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trckVolume)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator3)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picCaptionBarSeparator)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimizeToSystemTray)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picClose)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picIcon)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numVolume)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trckVolume)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picSeparator2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picSeparator1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picCaptionBarSeparator)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
             this.SuspendLayout();
             // 
             // pnlCaptionBar
@@ -75,24 +78,76 @@
             this.pnlCaptionBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlCaptionBar.Location = new System.Drawing.Point(0, 0);
             this.pnlCaptionBar.Name = "pnlCaptionBar";
-            this.pnlCaptionBar.Size = new System.Drawing.Size(422, 44);
+            this.pnlCaptionBar.Size = new System.Drawing.Size(427, 44);
             this.pnlCaptionBar.TabIndex = 0;
             this.pnlCaptionBar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
+            // 
+            // picMinimizeToSystemTray
+            // 
+            this.picMinimizeToSystemTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.picMinimizeToSystemTray.Location = new System.Drawing.Point(325, 6);
+            this.picMinimizeToSystemTray.Name = "picMinimizeToSystemTray";
+            this.picMinimizeToSystemTray.Size = new System.Drawing.Size(32, 32);
+            this.picMinimizeToSystemTray.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picMinimizeToSystemTray.TabIndex = 5;
+            this.picMinimizeToSystemTray.TabStop = false;
+            this.tooltip.SetToolTip(this.picMinimizeToSystemTray, "Minimize the window to the system tray");
+            this.picMinimizeToSystemTray.Click += new System.EventHandler(this.MinimizeToSystemTray);
+            this.picMinimizeToSystemTray.MouseEnter += new System.EventHandler(this.MinimizeSysTray_MouseEnter);
+            this.picMinimizeToSystemTray.MouseLeave += new System.EventHandler(this.MinimizeSysTray_MouseLeave);
+            // 
+            // picMinimize
+            // 
+            this.picMinimize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.picMinimize.Location = new System.Drawing.Point(357, 6);
+            this.picMinimize.Name = "picMinimize";
+            this.picMinimize.Size = new System.Drawing.Size(32, 32);
+            this.picMinimize.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picMinimize.TabIndex = 4;
+            this.picMinimize.TabStop = false;
+            this.tooltip.SetToolTip(this.picMinimize, "Minimize the window");
+            this.picMinimize.Click += new System.EventHandler(this.MinimizeWindow);
+            this.picMinimize.MouseEnter += new System.EventHandler(this.Minimize_MouseEnter);
+            this.picMinimize.MouseLeave += new System.EventHandler(this.Minimize_MouseLeave);
+            // 
+            // picClose
+            // 
+            this.picClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.picClose.Location = new System.Drawing.Point(389, 6);
+            this.picClose.Name = "picClose";
+            this.picClose.Size = new System.Drawing.Size(32, 32);
+            this.picClose.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picClose.TabIndex = 2;
+            this.picClose.TabStop = false;
+            this.tooltip.SetToolTip(this.picClose, "Exit the window");
+            this.picClose.Click += new System.EventHandler(this.CloseWindow);
+            this.picClose.MouseEnter += new System.EventHandler(this.Close_MouseEnter);
+            this.picClose.MouseLeave += new System.EventHandler(this.Close_MouseLeave);
             // 
             // lblTitle
             // 
             this.lblTitle.AutoSize = true;
             this.lblTitle.Location = new System.Drawing.Point(40, 13);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(121, 19);
+            this.lblTitle.Size = new System.Drawing.Size(180, 19);
             this.lblTitle.TabIndex = 1;
-            this.lblTitle.Text = "Mechvibes.CSharp";
+            this.lblTitle.Text = "Mechvibes Portable Remake";
             this.lblTitle.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
+            // 
+            // picIcon
+            // 
+            this.picIcon.Location = new System.Drawing.Point(6, 6);
+            this.picIcon.Name = "picIcon";
+            this.picIcon.Size = new System.Drawing.Size(32, 32);
+            this.picIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picIcon.TabIndex = 0;
+            this.picIcon.TabStop = false;
+            this.picIcon.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
             // 
             // lblSoundPack
             // 
             this.lblSoundPack.AutoSize = true;
-            this.lblSoundPack.Location = new System.Drawing.Point(12, 57);
+            this.lblSoundPack.Location = new System.Drawing.Point(12, 59);
             this.lblSoundPack.Name = "lblSoundPack";
             this.lblSoundPack.Size = new System.Drawing.Size(79, 19);
             this.lblSoundPack.TabIndex = 2;
@@ -102,7 +157,7 @@
             // 
             this.cmbSelectedSoundPack.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSelectedSoundPack.FormattingEnabled = true;
-            this.cmbSelectedSoundPack.Location = new System.Drawing.Point(97, 54);
+            this.cmbSelectedSoundPack.Location = new System.Drawing.Point(97, 56);
             this.cmbSelectedSoundPack.Name = "cmbSelectedSoundPack";
             this.cmbSelectedSoundPack.Size = new System.Drawing.Size(317, 25);
             this.cmbSelectedSoundPack.TabIndex = 3;
@@ -111,7 +166,7 @@
             // 
             // btnReloadSoundPacks
             // 
-            this.btnReloadSoundPacks.Location = new System.Drawing.Point(271, 101);
+            this.btnReloadSoundPacks.Location = new System.Drawing.Point(265, 180);
             this.btnReloadSoundPacks.Name = "btnReloadSoundPacks";
             this.btnReloadSoundPacks.Size = new System.Drawing.Size(143, 37);
             this.btnReloadSoundPacks.TabIndex = 5;
@@ -123,7 +178,7 @@
             // 
             // btnShowSoundPackFolder
             // 
-            this.btnShowSoundPackFolder.Location = new System.Drawing.Point(124, 101);
+            this.btnShowSoundPackFolder.Location = new System.Drawing.Point(118, 180);
             this.btnShowSoundPackFolder.Name = "btnShowSoundPackFolder";
             this.btnShowSoundPackFolder.Size = new System.Drawing.Size(141, 37);
             this.btnShowSoundPackFolder.TabIndex = 6;
@@ -134,11 +189,11 @@
             // 
             // btnOpenSoundEditor
             // 
-            this.btnOpenSoundEditor.Location = new System.Drawing.Point(12, 101);
+            this.btnOpenSoundEditor.Location = new System.Drawing.Point(6, 180);
             this.btnOpenSoundEditor.Name = "btnOpenSoundEditor";
             this.btnOpenSoundEditor.Size = new System.Drawing.Size(106, 37);
             this.btnOpenSoundEditor.TabIndex = 7;
-            this.btnOpenSoundEditor.Text = "sound Editor";
+            this.btnOpenSoundEditor.Text = "Sound Editor";
             this.tooltip.SetToolTip(this.btnOpenSoundEditor, "Opens the sound editor for making custom soundpacks");
             this.btnOpenSoundEditor.UseVisualStyleBackColor = true;
             this.btnOpenSoundEditor.Click += new System.EventHandler(this.OpenSoundEditor);
@@ -147,7 +202,7 @@
             // 
             this.lblGitHubAccount.AutoSize = true;
             this.lblGitHubAccount.ForeColor = System.Drawing.Color.Blue;
-            this.lblGitHubAccount.Location = new System.Drawing.Point(8, 199);
+            this.lblGitHubAccount.Location = new System.Drawing.Point(8, 282);
             this.lblGitHubAccount.Name = "lblGitHubAccount";
             this.lblGitHubAccount.Size = new System.Drawing.Size(96, 19);
             this.lblGitHubAccount.TabIndex = 9;
@@ -161,7 +216,7 @@
             // 
             this.lblGitHubRepository.AutoSize = true;
             this.lblGitHubRepository.ForeColor = System.Drawing.Color.Blue;
-            this.lblGitHubRepository.Location = new System.Drawing.Point(201, 199);
+            this.lblGitHubRepository.Location = new System.Drawing.Point(201, 282);
             this.lblGitHubRepository.Name = "lblGitHubRepository";
             this.lblGitHubRepository.Size = new System.Drawing.Size(213, 19);
             this.lblGitHubRepository.TabIndex = 10;
@@ -171,11 +226,22 @@
             this.lblGitHubRepository.MouseEnter += new System.EventHandler(this.GitHubRepository_MouseEnter);
             this.lblGitHubRepository.MouseLeave += new System.EventHandler(this.GitHubRepository_MouseLeave);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(6, 221);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(253, 37);
+            this.button1.TabIndex = 17;
+            this.button1.Text = "Download SoundPacks";
+            this.tooltip.SetToolTip(this.button1, "Navigate to Mechvibes Sheet with many packs ready to download");
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // numVolume
             // 
-            this.numVolume.Location = new System.Drawing.Point(12, 158);
+            this.numVolume.Location = new System.Drawing.Point(16, 111);
             this.numVolume.Name = "numVolume";
-            this.numVolume.Size = new System.Drawing.Size(61, 25);
+            this.numVolume.Size = new System.Drawing.Size(75, 25);
             this.numVolume.TabIndex = 13;
             this.numVolume.Value = new decimal(new int[] {
             50,
@@ -186,10 +252,10 @@
             // 
             // trckVolume
             // 
-            this.trckVolume.Location = new System.Drawing.Point(76, 159);
+            this.trckVolume.Location = new System.Drawing.Point(97, 111);
             this.trckVolume.Maximum = 100;
             this.trckVolume.Name = "trckVolume";
-            this.trckVolume.Size = new System.Drawing.Size(338, 45);
+            this.trckVolume.Size = new System.Drawing.Size(318, 45);
             this.trckVolume.TabIndex = 14;
             this.trckVolume.TickStyle = System.Windows.Forms.TickStyle.None;
             this.trckVolume.Value = 50;
@@ -204,34 +270,26 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(12, 230);
+            this.textBox1.BackColor = System.Drawing.Color.Gainsboro;
+            this.textBox1.Location = new System.Drawing.Point(97, 142);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(402, 25);
+            this.textBox1.Size = new System.Drawing.Size(317, 25);
             this.textBox1.TabIndex = 15;
             this.textBox1.Leave += new System.EventHandler(this.textBox1_Leave);
             // 
             // picSeparator2
             // 
             this.picSeparator2.BackColor = System.Drawing.Color.Silver;
-            this.picSeparator2.Location = new System.Drawing.Point(0, 148);
+            this.picSeparator2.Location = new System.Drawing.Point(0, 264);
             this.picSeparator2.Name = "picSeparator2";
             this.picSeparator2.Size = new System.Drawing.Size(427, 1);
             this.picSeparator2.TabIndex = 12;
             this.picSeparator2.TabStop = false;
             // 
-            // picSeparator3
-            // 
-            this.picSeparator3.BackColor = System.Drawing.Color.Silver;
-            this.picSeparator3.Location = new System.Drawing.Point(0, 192);
-            this.picSeparator3.Name = "picSeparator3";
-            this.picSeparator3.Size = new System.Drawing.Size(427, 1);
-            this.picSeparator3.TabIndex = 8;
-            this.picSeparator3.TabStop = false;
-            // 
             // picSeparator1
             // 
             this.picSeparator1.BackColor = System.Drawing.Color.Silver;
-            this.picSeparator1.Location = new System.Drawing.Point(0, 90);
+            this.picSeparator1.Location = new System.Drawing.Point(0, 173);
             this.picSeparator1.Name = "picSeparator1";
             this.picSeparator1.Size = new System.Drawing.Size(427, 1);
             this.picSeparator1.TabIndex = 4;
@@ -246,69 +304,43 @@
             this.picCaptionBarSeparator.TabIndex = 1;
             this.picCaptionBarSeparator.TabStop = false;
             // 
-            // picMinimizeToSystemTray
+            // label1
             // 
-            this.picMinimizeToSystemTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picMinimizeToSystemTray.Location = new System.Drawing.Point(320, 6);
-            this.picMinimizeToSystemTray.Name = "picMinimizeToSystemTray";
-            this.picMinimizeToSystemTray.Size = new System.Drawing.Size(32, 32);
-            this.picMinimizeToSystemTray.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.picMinimizeToSystemTray.TabIndex = 5;
-            this.picMinimizeToSystemTray.TabStop = false;
-            this.tooltip.SetToolTip(this.picMinimizeToSystemTray, "Minimize the window to the system tray");
-            this.picMinimizeToSystemTray.Click += new System.EventHandler(this.MinimizeToSystemTray);
-            this.picMinimizeToSystemTray.MouseEnter += new System.EventHandler(this.MinimizeSysTray_MouseEnter);
-            this.picMinimizeToSystemTray.MouseLeave += new System.EventHandler(this.MinimizeSysTray_MouseLeave);
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(55, 145);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(36, 19);
+            this.label1.TabIndex = 16;
+            this.label1.Text = "Test:";
             // 
-            // picMinimize
+            // fileSystemWatcher1
             // 
-            this.picMinimize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picMinimize.Location = new System.Drawing.Point(352, 6);
-            this.picMinimize.Name = "picMinimize";
-            this.picMinimize.Size = new System.Drawing.Size(32, 32);
-            this.picMinimize.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.picMinimize.TabIndex = 4;
-            this.picMinimize.TabStop = false;
-            this.tooltip.SetToolTip(this.picMinimize, "Minimize the window");
-            this.picMinimize.Click += new System.EventHandler(this.MinimizeWindow);
-            this.picMinimize.MouseEnter += new System.EventHandler(this.Minimize_MouseEnter);
-            this.picMinimize.MouseLeave += new System.EventHandler(this.Minimize_MouseLeave);
+            this.fileSystemWatcher1.EnableRaisingEvents = true;
+            this.fileSystemWatcher1.Filter = "*";
+            this.fileSystemWatcher1.SynchronizingObject = this;
             // 
-            // picClose
+            // label2
             // 
-            this.picClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picClose.Location = new System.Drawing.Point(384, 6);
-            this.picClose.Name = "picClose";
-            this.picClose.Size = new System.Drawing.Size(32, 32);
-            this.picClose.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.picClose.TabIndex = 2;
-            this.picClose.TabStop = false;
-            this.tooltip.SetToolTip(this.picClose, "Exit the window");
-            this.picClose.Click += new System.EventHandler(this.CloseWindow);
-            this.picClose.MouseEnter += new System.EventHandler(this.Close_MouseEnter);
-            this.picClose.MouseLeave += new System.EventHandler(this.Close_MouseLeave);
-            // 
-            // picIcon
-            // 
-            this.picIcon.Location = new System.Drawing.Point(6, 6);
-            this.picIcon.Name = "picIcon";
-            this.picIcon.Size = new System.Drawing.Size(32, 32);
-            this.picIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.picIcon.TabIndex = 0;
-            this.picIcon.TabStop = false;
-            this.picIcon.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(101, 85);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(59, 19);
+            this.label2.TabIndex = 18;
+            this.label2.Text = "installed";
             // 
             // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(422, 260);
+            this.ClientSize = new System.Drawing.Size(427, 307);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.numVolume);
             this.Controls.Add(this.picSeparator2);
             this.Controls.Add(this.lblGitHubRepository);
             this.Controls.Add(this.lblGitHubAccount);
-            this.Controls.Add(this.picSeparator3);
             this.Controls.Add(this.btnOpenSoundEditor);
             this.Controls.Add(this.btnShowSoundPackFolder);
             this.Controls.Add(this.btnReloadSoundPacks);
@@ -327,18 +359,19 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Mechvibes.CSharp";
+            this.TopMost = true;
             this.pnlCaptionBar.ResumeLayout(false);
             this.pnlCaptionBar.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numVolume)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trckVolume)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator3)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picSeparator1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picCaptionBarSeparator)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimizeToSystemTray)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picClose)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picIcon)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numVolume)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trckVolume)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picSeparator2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picSeparator1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picCaptionBarSeparator)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -358,7 +391,6 @@
 		private System.Windows.Forms.Button btnReloadSoundPacks;
 		private System.Windows.Forms.Button btnShowSoundPackFolder;
 		private System.Windows.Forms.Button btnOpenSoundEditor;
-		private System.Windows.Forms.PictureBox picSeparator3;
 		private System.Windows.Forms.Label lblGitHubAccount;
 		private System.Windows.Forms.Label lblGitHubRepository;
 		private System.Windows.Forms.ToolTip tooltip;
@@ -368,6 +400,10 @@
 		private System.Windows.Forms.PictureBox picMinimizeToSystemTray;
 		private System.Windows.Forms.NotifyIcon trayicon;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button button1;
+        internal System.IO.FileSystemWatcher fileSystemWatcher1;
+        private System.Windows.Forms.Label label2;
     }
 }
 

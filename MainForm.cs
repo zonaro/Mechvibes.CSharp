@@ -22,7 +22,6 @@ namespace Mechvibes.CSharp
     {
         #region Private Fields
 
-        private readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
         private int audioVolume = 50;
         private bool m_aeroEnabled = false;
         private Keys prevKey = Keys.None;
@@ -30,6 +29,7 @@ namespace Mechvibes.CSharp
         #endregion Private Fields
 
         internal static readonly List<SoundPack> soundpacks = new List<SoundPack>();
+        internal readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
         internal Settings settings = new Settings();
 
         public MainForm()
@@ -126,6 +126,11 @@ namespace Mechvibes.CSharp
 
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://docs.google.com/spreadsheets/d/1PimUN_Qn3CWqfn-93YdVW8OWy8nzpz3w3me41S8S494/edit#gid=0");
+        }
 
         private bool CheckAeroEnabled()
         {
@@ -285,22 +290,36 @@ namespace Mechvibes.CSharp
         {
             cmbSelectedSoundPack.Items.Clear();
             soundpacks.Clear();
-            foreach (string f in Directory.EnumerateDirectories(SoundPacksPath))
+            try
             {
-                SoundPack pack = new SoundPack() { FilePath = Path.Combine(f, "config.json") }.Load();
+                foreach (string f in Directory.EnumerateDirectories(SoundPacksPath))
+                {
+                    SoundPack pack = new SoundPack() { FilePath = Path.Combine(f, "config.json") }.Load();
 
-                soundpacks.Add(pack);
-                cmbSelectedSoundPack.Items.Add(pack.Name);
-            }
+                    soundpacks.Add(pack);
+                    cmbSelectedSoundPack.Items.Add(pack.Name);
+                }
 
-            if (ActiveText.IsNotBlank())
-            {
-                cmbSelectedSoundPack.Text = ActivatePack(ActiveText).Name;
+                if (ActiveText.IsNotBlank())
+                {
+                    ActiveText = ActivatePack(ActiveText)?.Name;
+                    if (ActiveText.IsNotBlank())
+                        cmbSelectedSoundPack.Text = ActiveText;
+                    else
+                        cmbSelectedSoundPack.SelectedIndex = 0;
+                }
+                else
+                {
+                    cmbSelectedSoundPack.SelectedIndex = 0;
+                }
+
+                label2.Text = $"{InnerLibs.Text.QuantifyText($"{cmbSelectedSoundPack.Items.Count} packs")} Installed";
             }
-            else
+            catch (Exception)
             {
-                cmbSelectedSoundPack.SelectedIndex = 0;
+ 
             }
+          
         }
 
         private void Minimize_MouseEnter(object sender, EventArgs e) => picMinimize.BackColor = SystemColors.Control;
@@ -365,34 +384,38 @@ namespace Mechvibes.CSharp
         {
             await Task.Run(() =>
             {
-                WaveOutEvent output = new WaveOutEvent
+                try
                 {
-                    Volume = volume / 100.0f,
-                    NumberOfBuffers = 30,
-                    DesiredLatency = 325,
-                };
-                AudioFileReader audio = new AudioFileReader(file);
-                OffsetSampleProvider trimmed = new OffsetSampleProvider(audio)
-                {
-                    SkipOver = TimeSpan.FromMilliseconds(range.Position),
-                    Take = TimeSpan.FromMilliseconds(range.Duration),
-                };
-                output.PlaybackStopped += (s, e) =>
-                {
-                    output.Dispose();
-                    audio.Dispose();
-                };
-                output.Init(trimmed);
+                    WaveOutEvent output = new WaveOutEvent
+                    {
+                        Volume = volume / 100.0f,
+                        NumberOfBuffers = 30,
+                        DesiredLatency = 325,
+                    };
+                    AudioFileReader audio = new AudioFileReader(file);
+                    OffsetSampleProvider trimmed = new OffsetSampleProvider(audio)
+                    {
+                        SkipOver = TimeSpan.FromMilliseconds(range.Position),
+                        Take = TimeSpan.FromMilliseconds(range.Duration),
+                    };
+                    output.PlaybackStopped += (s, e) =>
+                    {
+                        output.Dispose();
+                        audio.Dispose();
+                    };
+                    output.Init(trimmed);
 
-                output.Play();
+                    output.Play();
+                }
+                catch (Exception)
+                {
+                }
             });
         }
 
-        private void ReloadSoundPacks(object sender, EventArgs e) => LoadSoundPacks();
+        private void ReloadSoundPacks(object sender, EventArgs e) => LoadSoundPacks(cmbSelectedSoundPack.Text);
 
-        private void SoundPackSelected(object sender, EventArgs e)
-        {
-        }
+
 
         private void textBox1_Leave(object sender, EventArgs e)
         {
@@ -458,6 +481,24 @@ namespace Mechvibes.CSharp
             trckVolume.Value = settings.volume;
 
             settings.Save();
+
+            fileSystemWatcher1.Created += (s, f) =>
+            {
+                LoadSoundPacks(this.cmbSelectedSoundPack.Text);
+            };
+
+            fileSystemWatcher1.Changed += (s, f) =>
+            {
+                LoadSoundPacks(this.cmbSelectedSoundPack.Text);
+            };
+
+            fileSystemWatcher1.Deleted += (s, f) =>
+            {
+                LoadSoundPacks(this.cmbSelectedSoundPack.Text);
+            };
+
+            fileSystemWatcher1.Path = SoundPacksPath;
+            fileSystemWatcher1.EnableRaisingEvents = true;
         }
 
         protected override void WndProc(ref Message m)
@@ -479,10 +520,7 @@ namespace Mechvibes.CSharp
             base.WndProc(ref m);
         }
 
-        internal SoundPack ActivatePack(string Text)
-        {
-            return soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
-        }
+        internal SoundPack ActivatePack(string Text) => soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
 
         private struct MARGINS
         {

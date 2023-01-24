@@ -288,16 +288,6 @@
     <None Include="Resources\tray.png" />
     <None Include="Resources\minimize.png" />
     <None Include="Resources\close.png" />
-    <EmbeddedResource Include="Libraries\Microsoft.Win32.Registry.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.Asio.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.Core.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.Midi.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.Wasapi.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.WinForms.dll" />
-    <EmbeddedResource Include="Libraries\NAudio.WinMM.dll" />
-    <EmbeddedResource Include="Libraries\System.Security.AccessControl.dll" />
-    <EmbeddedResource Include="Libraries\System.Security.Principal.Windows.dll" />
     <EmbeddedResource Include="DefaultPacks\nk-cream\a.wav" />
     <EmbeddedResource Include="DefaultPacks\nk-cream\b.wav" />
     <EmbeddedResource Include="DefaultPacks\nk-cream\backspace.wav" />
@@ -343,7 +333,6 @@
     <EmbeddedResource Include="DefaultPacks\eg-crystal-purple\purple.wav" />
     <EmbeddedResource Include="DefaultPacks\eg-oreo\oreo.wav" />
     <EmbeddedResource Include="DefaultPacks\topre-purple-hybrid-pbt\sound.wav" />
-    <EmbeddedResource Include="Libraries\Gma.System.MouseKeyHook.dll" />
     <Content Include="mechvibes-icon.ico" />
     <None Include="Resources\keyboard.jpeg" />
   </ItemGroup>
