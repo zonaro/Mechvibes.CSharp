@@ -138,7 +138,7 @@
             this.btnOpenSoundEditor.Name = "btnOpenSoundEditor";
             this.btnOpenSoundEditor.Size = new System.Drawing.Size(106, 37);
             this.btnOpenSoundEditor.TabIndex = 7;
-            this.btnOpenSoundEditor.Text = "Sound Editor";
+            this.btnOpenSoundEditor.Text = "sound Editor";
             this.tooltip.SetToolTip(this.btnOpenSoundEditor, "Opens the sound editor for making custom soundpacks");
             this.btnOpenSoundEditor.UseVisualStyleBackColor = true;
             this.btnOpenSoundEditor.Click += new System.EventHandler(this.OpenSoundEditor);

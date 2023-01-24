@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static System.Net.WebRequestMethods;
 
 namespace Mechvibes.CSharp
 {
@@ -33,8 +34,8 @@ namespace Mechvibes.CSharp
             btnImportFromManifest.Click += new EventHandler(Unfocus);
             btnExportToManifest.Click += new EventHandler(Unfocus);
 
-             picMinimize.Image = Properties.Resources.minimize.Resize(picMinimize.Size);
-             picClose.Image = Properties.Resources.close.Resize(picClose.Size);
+            picMinimize.Image = Properties.Resources.minimize.Resize(picMinimize.Size);
+            picClose.Image = Properties.Resources.close.Resize(picClose.Size);
 
             Bitmap iconBitmap = new Bitmap(32, 32);
             using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
@@ -87,39 +88,19 @@ namespace Mechvibes.CSharp
                 input.Text = string.Empty;
         }
 
-        // from https://stackoverflow.com/questions/6198392/check-whether-a-path-is-valid
-        private bool IsValidPath(string path, bool allowRelativePaths = false)
-        {
-            bool isValid = false;
 
-            try
-            {
-                string fullPath = Path.GetFullPath(path);
-
-                if (allowRelativePaths)
-                    isValid = Path.IsPathRooted(path);
-                else
-                {
-                    string root = Path.GetPathRoot(path);
-                    isValid = string.IsNullOrEmpty(root.Trim(new char[] { '\\', '/' })) == false;
-                }
-            }
-            catch { isValid = false; }
-
-            return isValid;
-        }
 
         private void ImportPackFromManifest(object sender, EventArgs e)
         {
-            using (OpenFileDialog ofd = new OpenFileDialog
+            using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                Title = "Please select a Mechvibes soundpack config to import...",
-                Filter = "Mechvibes SoundPack Config|*.json",
-            }) if (ofd.ShowDialog() == DialogResult.OK)
+                ofd.Title = "Please select a Mechvibes soundpack config to import...";
+                ofd.Filter = "Mechvibes SoundPack Config|*.json";
+                if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     SoundPack loadedPack = new SoundPack() { FilePath = ofd.FileName }.Load();
 
-                    if (IsValidPath(loadedPack.Keybinds[0].AudioFile))
+                    if (loadedPack.Keybinds.FirstOrDefault()?.AudioFile.IsFilePath() ?? false)
                     {
                         txtPackName.Text = loadedPack.Name;
 
@@ -129,32 +110,33 @@ namespace Mechvibes.CSharp
                                     input.Text = Path.GetFileName(keymap.AudioFile);
                     }
                 }
+            }
         }
 
         private void ExportPackToManifest(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(txtPackName.Text))
             {
-                using (SaveFileDialog sfd = new SaveFileDialog
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
-                    Title = "Please choose where you want to save your soundpack config...",
-                    Filter = "Mechvibes SoundPack Config|*.json",
-                }) if (sfd.ShowDialog() == DialogResult.OK)
+                    sfd.Title = "Please choose where you want to save your soundpack config...";
+                    sfd.Filter = "Mechvibes SoundPack Config|*.json";
+
+                    if (sfd.ShowDialog() == DialogResult.OK)
                     {
                         List<Keymap> keybinds = new List<Keymap>();
 
                         foreach (TextBox input in Controls.OfType<TextBox>().Where(textbox => textbox.Name != "txtPackName"))
-                            if (!string.IsNullOrEmpty(input.Text))
+                            if (input.Text.IsNotBlank())
                             {
                                 Key keybind = (Key)TypeDescriptor.GetConverter(typeof(Key)).ConvertFromString(input.Name);
-                                string audioFile = input.Text;
-
-                                keybinds.Add(new Keymap { Keybind = keybind, AudioFile = audioFile });
+                                keybinds.Add(new Keymap { Keybind = keybind, AudioFile = input.Text });
                             }
 
-                        var p = new SoundPack() { FilePath = sfd.FileName, Name = txtPackName.Text, Keybinds = keybinds };
-                        p.Save();
+                        var p = new SoundPack() { FilePath = sfd.FileName, Name = txtPackName.Text }.SetKeyBinds(keybinds).Save();
+
                     }
+                }
             }
             else MessageBox.Show("Soundpack must at least have a name to be exported.");
         }

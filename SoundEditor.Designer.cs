@@ -241,7 +241,7 @@
 			this.lblTitle.Name = "lblTitle";
 			this.lblTitle.Size = new System.Drawing.Size(120, 19);
 			this.lblTitle.TabIndex = 1;
-			this.lblTitle.Text = "Sound Pack Editor";
+			this.lblTitle.Text = "sound Pack Editor";
 			this.lblTitle.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
 			// 
 			// picIcon
@@ -271,7 +271,7 @@
 			this.lblPackName.Name = "lblPackName";
 			this.lblPackName.Size = new System.Drawing.Size(77, 19);
 			this.lblPackName.TabIndex = 3;
-			this.lblPackName.Text = "Pack Name";
+			this.lblPackName.Text = "Pack name";
 			// 
 			// txtPackName
 			// 
@@ -1289,7 +1289,7 @@
 			this.MinimizeBox = false;
 			this.Name = "SoundEditor";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "Sound Pack Editor";
+			this.Text = "sound Pack Editor";
 			this.pnlCaptionBar.ResumeLayout(false);
 			this.pnlCaptionBar.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.picMinimize)).EndInit();

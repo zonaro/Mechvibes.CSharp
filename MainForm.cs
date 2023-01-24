@@ -4,7 +4,6 @@ using InnerLibs.LINQ;
 using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -263,11 +262,11 @@ namespace Mechvibes.CSharp
                 {
                     if (CurrentSoundPack.IsMultikeyPack)
                     {
-                        PlayAudio(CurrentSoundPack.GetBindedAudio(KeymapHelper.GetSoundPackKey(e.KeyCode, false)), audioVolume);
+                        PlayAudio(CurrentSoundPack.GetBindedAudio(Keymap.GetSoundPackKey(e.KeyCode, false)), audioVolume);
                     }
                     else
                     {
-                        PlayTrimmedAudio(CurrentSoundPack.GetAudioFilePath(), audioVolume, CurrentSoundPack.GetBindedRange(KeymapHelper.GetSoundPackKey(e.KeyCode, false)));
+                        PlayTrimmedAudio(CurrentSoundPack.AudioFilePath, audioVolume, CurrentSoundPack.GetKeyMap(Keymap.GetSoundPackKey(e.KeyCode, false)));
                     }
 
                     prevKey = e.KeyCode;
@@ -288,8 +287,8 @@ namespace Mechvibes.CSharp
             soundpacks.Clear();
             foreach (string f in Directory.EnumerateDirectories(SoundPacksPath))
             {
-                SoundPack pack = new SoundPack() { FilePath = Path.Combine(f, "config.json") }.Load().LoadBinds();             
-           
+                SoundPack pack = new SoundPack() { FilePath = Path.Combine(f, "config.json") }.Load();
+
                 soundpacks.Add(pack);
                 cmbSelectedSoundPack.Items.Add(pack.Name);
             }
@@ -362,7 +361,7 @@ namespace Mechvibes.CSharp
             GC.Collect();
         }
 
-        private async void PlayTrimmedAudio(string file, int volume, AudioRange range)
+        private async void PlayTrimmedAudio(string file, int volume, Keymap range)
         {
             await Task.Run(() =>
             {
@@ -378,13 +377,12 @@ namespace Mechvibes.CSharp
                     SkipOver = TimeSpan.FromMilliseconds(range.Position),
                     Take = TimeSpan.FromMilliseconds(range.Duration),
                 };
-                output.Init(trimmed);
-
                 output.PlaybackStopped += (s, e) =>
                 {
                     output.Dispose();
                     audio.Dispose();
                 };
+                output.Init(trimmed);
 
                 output.Play();
             });
@@ -394,6 +392,11 @@ namespace Mechvibes.CSharp
 
         private void SoundPackSelected(object sender, EventArgs e)
         {
+        }
+
+        private void textBox1_Leave(object sender, EventArgs e)
+        {
+            textBox1.Clear();
         }
 
         private void UnminimizeWindowToNormal(object sender, EventArgs e)
@@ -512,11 +515,6 @@ namespace Mechvibes.CSharp
             /// Window is minimized to the system tray
             /// </summary>
             MinimizedToTray
-        }
-
-        private void textBox1_Leave(object sender, EventArgs e)
-        {
-            textBox1.Clear();
         }
     }
 }
