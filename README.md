@@ -18,7 +18,7 @@ Definitions:
 
 ## Download
 [Setup Video (mkv)](https://github.com/Lexz-08/Mechvibes.CSharp/raw/master/Setup%20Mechvibes%20Folder%20Without%20Mechvibes%20Installed.mkv)<br/>
-[Release](https://github.com/Lexz-08/Mechvibes.CSharp/releases/mechvibes-remake) - [**Mechvibes.CSharp.exe**](https://github.com/Lexz-08/Mechvibes.CSharp/releases/download/mechvibes-remake/Mechvibes.CSharp.exe)
+[Release](https://github.com/zonaro/Mechvibes.CSharp/releases)
 
 ## SoundPack Format (`config.json` format)
 You can use the key codes provided to create a custom soundpack manually through a text-editor or code-editor.
