@@ -17,7 +17,6 @@ Definitions:
     * Default is `50`
 
 ## Download
-[Setup Video (mkv)](https://github.com/Lexz-08/Mechvibes.CSharp/raw/master/Setup%20Mechvibes%20Folder%20Without%20Mechvibes%20Installed.mkv)<br/>
 [Release](https://github.com/zonaro/Mechvibes.CSharp/releases)
 
 ## SoundPack Format (`config.json` format)
