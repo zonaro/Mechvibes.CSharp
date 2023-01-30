@@ -55,6 +55,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
             this.label2 = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.pnlCaptionBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimizeToSystemTray)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picMinimize)).BeginInit();
@@ -78,14 +79,14 @@
             this.pnlCaptionBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlCaptionBar.Location = new System.Drawing.Point(0, 0);
             this.pnlCaptionBar.Name = "pnlCaptionBar";
-            this.pnlCaptionBar.Size = new System.Drawing.Size(427, 44);
+            this.pnlCaptionBar.Size = new System.Drawing.Size(435, 44);
             this.pnlCaptionBar.TabIndex = 0;
             this.pnlCaptionBar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragForm);
             // 
             // picMinimizeToSystemTray
             // 
             this.picMinimizeToSystemTray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picMinimizeToSystemTray.Location = new System.Drawing.Point(325, 6);
+            this.picMinimizeToSystemTray.Location = new System.Drawing.Point(333, 6);
             this.picMinimizeToSystemTray.Name = "picMinimizeToSystemTray";
             this.picMinimizeToSystemTray.Size = new System.Drawing.Size(32, 32);
             this.picMinimizeToSystemTray.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -99,7 +100,7 @@
             // picMinimize
             // 
             this.picMinimize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picMinimize.Location = new System.Drawing.Point(357, 6);
+            this.picMinimize.Location = new System.Drawing.Point(365, 6);
             this.picMinimize.Name = "picMinimize";
             this.picMinimize.Size = new System.Drawing.Size(32, 32);
             this.picMinimize.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -113,7 +114,7 @@
             // picClose
             // 
             this.picClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.picClose.Location = new System.Drawing.Point(389, 6);
+            this.picClose.Location = new System.Drawing.Point(397, 6);
             this.picClose.Name = "picClose";
             this.picClose.Size = new System.Drawing.Size(32, 32);
             this.picClose.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -328,11 +329,23 @@
             this.label2.TabIndex = 18;
             this.label2.Text = "installed";
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(265, 216);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(111, 42);
+            this.checkBox1.TabIndex = 19;
+            this.checkBox1.Text = "Random pack\r\non start";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(427, 307);
+            this.ClientSize = new System.Drawing.Size(435, 307);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label1);
@@ -404,6 +417,7 @@
         private System.Windows.Forms.Button button1;
         internal System.IO.FileSystemWatcher fileSystemWatcher1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

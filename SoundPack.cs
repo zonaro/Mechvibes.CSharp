@@ -18,8 +18,6 @@ namespace Mechvibes.CSharp
 
         #endregion Public Constructors
 
-
-
         #region Public Properties
 
         public string AudioFile { get; set; }
@@ -29,8 +27,6 @@ namespace Mechvibes.CSharp
         public int Position { get; set; }
 
         #endregion Public Properties
-
-
 
         #region Public Methods
 
@@ -291,8 +287,6 @@ namespace Mechvibes.CSharp
 
         #endregion Public Constructors
 
-
-
         #region Public Properties
 
         [IgnoreDataMember]
@@ -376,8 +370,6 @@ namespace Mechvibes.CSharp
         public string Sound { get; set; }
 
         #endregion Public Properties
-
-
 
         #region Public Methods
 
@@ -503,5 +495,26 @@ namespace Mechvibes.CSharp
         NumPad8 = 72, // Numpad
         NumPad9 = 73, // Numpad
         NumPad0 = 82, //Numpad
+    }
+
+    /// <summary>
+    /// Different states of the program
+    /// </summary>
+    public enum ProgramState
+    {
+        /// <summary>
+        /// Window is visible to the user
+        /// </summary>
+        Visible = 0,
+
+        /// <summary>
+        /// Window is minimized the the taskbar
+        /// </summary>
+        Minimized = 1,
+
+        /// <summary>
+        /// Window is minimized to the system tray
+        /// </summary>
+        MinimizedToTray = 2
     }
 }

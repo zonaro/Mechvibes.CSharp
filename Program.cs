@@ -25,7 +25,6 @@ namespace Mechvibes.CSharp
             Application.SetCompatibleTextRenderingDefault(false);
 
             frm_MainWindow = new MainForm();
-
             Application.Run(frm_MainWindow);
         }
 

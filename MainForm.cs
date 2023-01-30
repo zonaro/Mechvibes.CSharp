@@ -1,12 +1,12 @@
 ﻿using Gma.System.MouseKeyHook;
 using InnerLibs;
+using InnerLibs.Console;
 using InnerLibs.LINQ;
 using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -22,92 +22,15 @@ namespace Mechvibes.CSharp
     {
         #region Private Fields
 
-        private int audioVolume = 50;
+
         private bool m_aeroEnabled = false;
         private Keys prevKey = Keys.None;
 
+        private ProgramState _state = ProgramState.Visible;
+
         #endregion Private Fields
 
-        internal static readonly List<SoundPack> soundpacks = new List<SoundPack>();
-        internal readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
-        internal Settings settings = new Settings();
-
-        public MainForm()
-        {
-            InitializeComponent();
-
-            string cursorPath = Registry.CurrentUser.OpenSubKey("Control Panel").OpenSubKey("Cursors").GetValue("Hand").ToString();
-            IntPtr cursorHandle = string.IsNullOrEmpty(cursorPath) ? IntPtr.Zero : LoadCursorFromFile(cursorPath);
-            Cursor cursorHand = cursorHandle == IntPtr.Zero ? Cursors.Hand : new Cursor(cursorHandle);
-
-            picMinimizeToSystemTray.Cursor = cursorHand;
-            picMinimize.Cursor = cursorHand;
-            picClose.Cursor = cursorHand;
-            cmbSelectedSoundPack.Cursor = cursorHand;
-            btnReloadSoundPacks.Cursor = cursorHand;
-            btnShowSoundPackFolder.Cursor = cursorHand;
-            btnOpenSoundEditor.Cursor = cursorHand;
-            lblGitHubAccount.Cursor = cursorHand;
-            lblGitHubRepository.Cursor = cursorHand;
-
-            void Unfocus(object sender, EventArgs e) => lblTitle.Focus();
-
-            cmbSelectedSoundPack.SelectionChangeCommitted += new EventHandler(Unfocus);
-            btnReloadSoundPacks.Click += new EventHandler(Unfocus);
-            btnShowSoundPackFolder.Click += new EventHandler(Unfocus);
-            btnOpenSoundEditor.Click += new EventHandler(Unfocus);
-
-            picMinimizeToSystemTray.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.tray).Resize(picMinimizeToSystemTray.Size);
-            picMinimize.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.minimize).Resize(picMinimize.Size);
-            picClose.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.close).Resize(picClose.Size);
-
-            Bitmap iconBitmap = new Bitmap(32, 32);
-            using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
-                iconGraphics.DrawIcon(Icon, new Rectangle(0, 0, 32, 32));
-
-            picIcon.Image = iconBitmap;
-
-            Timer t = new Timer { Interval = 1000 };
-            t.Tick += (s, e) =>
-            {
-                string[] args = Environment.GetCommandLineArgs();
-                args = args.Where(str_Argument => str_Argument != args.First()).ToArray();
-                if (args.Length > 1)
-                    switch ((ProgramState)TypeDescriptor.GetConverter(typeof(ProgramState)).ConvertFromString(args[0].Substring(2)))
-                    {
-                        case ProgramState.Minimized:
-                            MinimizeWindow(this, EventArgs.Empty);
-                            break;
-
-                        case ProgramState.MinimizedToTray:
-                            MinimizeToSystemTray(this, EventArgs.Empty);
-                            break;
-
-                        default: break;
-                    }
-
-                t.Dispose();
-            };
-            t.Start();
-        }
-
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                CreateParams cp = base.CreateParams;
-                m_aeroEnabled = CheckAeroEnabled();
-
-                if (!m_aeroEnabled)
-                    cp.ClassStyle |= 0x20000;
-
-                return cp;
-            }
-        }
-
-        internal SoundPack CurrentSoundPack => soundpacks.FirstOrDefault(soundpack => soundpack.Active);
-
-        public ProgramState State { get; set; } = ProgramState.Visible;
+        #region Private Methods
 
         [DllImport("dwmapi.dll")]
         private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
@@ -267,11 +190,11 @@ namespace Mechvibes.CSharp
                 {
                     if (CurrentSoundPack.IsMultikeyPack)
                     {
-                        PlayAudio(CurrentSoundPack.GetBindedAudio(Keymap.GetSoundPackKey(e.KeyCode, false)), audioVolume);
+                        PlayAudio(CurrentSoundPack.GetBindedAudio(Keymap.GetSoundPackKey(e.KeyCode, false)), settings.Volume);
                     }
                     else
                     {
-                        PlayTrimmedAudio(CurrentSoundPack.AudioFilePath, audioVolume, CurrentSoundPack.GetKeyMap(Keymap.GetSoundPackKey(e.KeyCode, false)));
+                        PlayTrimmedAudio(CurrentSoundPack.AudioFilePath, settings.Volume, CurrentSoundPack.GetKeyMap(Keymap.GetSoundPackKey(e.KeyCode, false)));
                     }
 
                     prevKey = e.KeyCode;
@@ -317,9 +240,7 @@ namespace Mechvibes.CSharp
             }
             catch (Exception)
             {
- 
             }
-          
         }
 
         private void Minimize_MouseEnter(object sender, EventArgs e) => picMinimize.BackColor = SystemColors.Control;
@@ -332,14 +253,14 @@ namespace Mechvibes.CSharp
 
         private void MinimizeToSystemTray(object sender, EventArgs e)
         {
-            Visible = false;
             State = ProgramState.MinimizedToTray;
+            settings.Save();
         }
 
         private void MinimizeWindow(object sender, EventArgs e)
         {
-            WindowState = FormWindowState.Minimized;
             State = ProgramState.Minimized;
+            settings.Save();
         }
 
         private void OpenSoundEditor(object sender, EventArgs e)
@@ -415,8 +336,6 @@ namespace Mechvibes.CSharp
 
         private void ReloadSoundPacks(object sender, EventArgs e) => LoadSoundPacks(cmbSelectedSoundPack.Text);
 
-
-
         private void textBox1_Leave(object sender, EventArgs e)
         {
             textBox1.Clear();
@@ -424,22 +343,62 @@ namespace Mechvibes.CSharp
 
         private void UnminimizeWindowToNormal(object sender, EventArgs e)
         {
-            Visible = true;
             State = ProgramState.Visible;
         }
 
         private void VolumeChanged(object sender, EventArgs e)
         {
             if (sender == trckVolume)
-                numVolume.Value = audioVolume = trckVolume.Value;
+                numVolume.Value = trckVolume.Value;
             else if (sender == numVolume)
-                trckVolume.Value = audioVolume = (int)numVolume.Value;
+                trckVolume.Value = numVolume.Value.RoundInt();
+
+            settings.Volume = trckVolume.Value;
+            settings.Save();
         }
+
+        #endregion Private Methods
+
+        #region Private Structs
+
+        private struct MARGINS
+        {
+            #region Public Fields
+
+            public int bottomHeight;
+            public int leftWidth;
+            public int rightWidth;
+            public int topHeight;
+
+            #endregion Public Fields
+        }
+
+        #endregion Private Structs
+
+        #region Protected Properties
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                m_aeroEnabled = CheckAeroEnabled();
+
+                if (!m_aeroEnabled)
+                    cp.ClassStyle |= 0x20000;
+
+                return cp;
+            }
+        }
+
+        #endregion Protected Properties
+
+        #region Protected Methods
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-
+            settings.Save();
             trayicon.Visible = false;
             trayicon.Dispose();
         }
@@ -448,8 +407,8 @@ namespace Mechvibes.CSharp
         {
             base.OnLoad(e);
 
-            DownloadDefaultPacks();
             settings = settings.Load();
+            DownloadDefaultPacks();
 
             IKeyboardMouseEvents hook = Hook.GlobalEvents();
             hook.KeyDown += Keyboard_KeyDown;
@@ -457,28 +416,37 @@ namespace Mechvibes.CSharp
 
             FormClosing += (s, ee) =>
             {
+                settings.Pack = cmbSelectedSoundPack.Text;
+                settings.Volume = numVolume.Value.RoundInt();
+                settings.Save();
                 hook.KeyDown -= Keyboard_KeyDown;
                 hook.KeyUp -= Keyboard_KeyUp;
                 hook.Dispose();
-                settings.pack = cmbSelectedSoundPack.Text;
-                settings.volume = numVolume.Value.RoundInt();
-                settings.Save();
             };
 
-            settings.pack = settings.pack.IfBlank("CherryMX Black - ABS keycaps");
+            settings.Pack = settings.Pack.IfBlank("CherryMX Black - ABS keycaps");
 
-            if (soundpacks.Any(soundpack => soundpack.Name == settings.pack))
+            if (soundpacks.Any(soundpack => soundpack.Name == settings.Pack))
             {
-                cmbSelectedSoundPack.Text = ActivatePack(settings.pack).Name;
+                if (settings.Random)
+                {
+                    int newSelectedIndex = cmbSelectedSoundPack.SelectedIndex;
+                    while (newSelectedIndex == cmbSelectedSoundPack.SelectedIndex)
+                    {
+                        newSelectedIndex = Generate.RandomNumber(0, cmbSelectedSoundPack.Items.Count);
+                        settings.Pack = ActivatePack(cmbSelectedSoundPack.Items[newSelectedIndex].ToString()).Name;
+                    }
+
+                }
+
+                cmbSelectedSoundPack.Text = ActivatePack(settings.Pack).Name;
             }
 
-            if (!settings.volume.IsBetween(numVolume.Minimum.RoundInt(), numVolume.Maximum.RoundInt()))
-            {
-                settings.volume = 50;
-            }
+            settings.Volume = settings.Volume.LimitRange(1, 100);
 
-            numVolume.Value = settings.volume;
-            trckVolume.Value = settings.volume;
+
+            numVolume.Value = settings.Volume;
+            trckVolume.Value = settings.Volume;
 
             settings.Save();
 
@@ -520,39 +488,122 @@ namespace Mechvibes.CSharp
             base.WndProc(ref m);
         }
 
-        internal SoundPack ActivatePack(string Text) => soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
+        #endregion Protected Methods
 
-        private struct MARGINS
+        #region Internal Fields
+
+        internal static readonly List<SoundPack> soundpacks = new List<SoundPack>();
+        internal readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
+        internal Settings settings = new Settings();
+
+        #endregion Internal Fields
+
+        #region Internal Properties
+
+        internal SoundPack CurrentSoundPack => soundpacks.FirstOrDefault(soundpack => soundpack.Active);
+
+        #endregion Internal Properties
+
+        #region Internal Methods
+
+        internal SoundPack ActivatePack(string Text)
         {
-            #region Public Fields
-
-            public int bottomHeight;
-            public int leftWidth;
-            public int rightWidth;
-            public int topHeight;
-
-            #endregion Public Fields
+            var pk = soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
+            settings.Save();
+            return pk;
         }
 
-        /// <summary>
-        /// Different states of the program
-        /// </summary>
-        public enum ProgramState
+        #endregion Internal Methods
+
+        #region Public Constructors
+
+        public MainForm()
         {
-            /// <summary>
-            /// Window is visible to the user
-            /// </summary>
-            Visible,
+            InitializeComponent();
 
-            /// <summary>
-            /// Window is minimized the the taskbar
-            /// </summary>
-            Minimized,
+            string cursorPath = Registry.CurrentUser.OpenSubKey("Control Panel").OpenSubKey("Cursors").GetValue("Hand").ToString();
+            IntPtr cursorHandle = string.IsNullOrEmpty(cursorPath) ? IntPtr.Zero : LoadCursorFromFile(cursorPath);
+            Cursor cursorHand = cursorHandle == IntPtr.Zero ? Cursors.Hand : new Cursor(cursorHandle);
 
-            /// <summary>
-            /// Window is minimized to the system tray
-            /// </summary>
-            MinimizedToTray
+            picMinimizeToSystemTray.Cursor = cursorHand;
+            picMinimize.Cursor = cursorHand;
+            picClose.Cursor = cursorHand;
+            cmbSelectedSoundPack.Cursor = cursorHand;
+            btnReloadSoundPacks.Cursor = cursorHand;
+            btnShowSoundPackFolder.Cursor = cursorHand;
+            btnOpenSoundEditor.Cursor = cursorHand;
+            lblGitHubAccount.Cursor = cursorHand;
+            lblGitHubRepository.Cursor = cursorHand;
+
+            void Unfocus(object sender, EventArgs e) => lblTitle.Focus();
+
+            cmbSelectedSoundPack.SelectionChangeCommitted += new EventHandler(Unfocus);
+            btnReloadSoundPacks.Click += new EventHandler(Unfocus);
+            btnShowSoundPackFolder.Click += new EventHandler(Unfocus);
+            btnOpenSoundEditor.Click += new EventHandler(Unfocus);
+
+            picMinimizeToSystemTray.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.tray).Resize(picMinimizeToSystemTray.Size);
+            picMinimize.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.minimize).Resize(picMinimize.Size);
+            picClose.Image = new Bitmap(Mechvibes.CSharp.Properties.Resources.close).Resize(picClose.Size);
+
+            Bitmap iconBitmap = new Bitmap(32, 32);
+            using (Graphics iconGraphics = Graphics.FromImage(iconBitmap))
+                iconGraphics.DrawIcon(Icon, new Rectangle(0, 0, 32, 32));
+
+            picIcon.Image = iconBitmap;
+
+            Timer t = new Timer { Interval = 1000 };
+            t.Tick += (s, e) =>
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                args = args.Skip(1).ToArray();
+                if (args.Length > 1)
+                {
+                    this.State = args.GetArgumentValue<ProgramState>("--state", (ProgramState)settings.State);
+                }
+
+                t.Dispose();
+            };
+            t.Start();
+        }
+
+        #endregion Public Constructors
+
+        #region Public Properties
+
+        public ProgramState State
+        {
+            get => _state;
+
+            set
+            {
+                switch (value)
+                {
+                    case ProgramState.Minimized:
+                        Visible = true;
+                        WindowState = FormWindowState.Minimized;
+                        break;
+
+                    case ProgramState.MinimizedToTray:
+                        Visible = false;
+                        break;
+
+                    default:
+                        WindowState = FormWindowState.Normal;
+                        Visible = true;
+                        break;
+                }
+                _state = value;
+            }
+        }
+
+
+        #endregion Public Properties
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            settings.Random = checkBox1.Checked;
+            settings.Save();
         }
     }
 }
