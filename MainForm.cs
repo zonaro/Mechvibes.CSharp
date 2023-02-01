@@ -468,6 +468,19 @@ namespace Mechvibes.CSharp
 
             fileSystemWatcher1.Path = SoundPacksPath;
             fileSystemWatcher1.EnableRaisingEvents = true;
+
+            var t = new Timer() { Interval = 2000 };
+            t.Tick += (s, te) =>
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                args = args.Skip(1).ToArray();
+                if (args.Length > 1)
+                {
+                    this.State = args.GetArgumentValue("--state", settings.State.GetEnumValue<ProgramState>());
+                }
+                t.Dispose();
+            };
+            t.Start();
         }
 
         protected override void WndProc(ref Message m)
@@ -553,19 +566,7 @@ namespace Mechvibes.CSharp
 
             picIcon.Image = iconBitmap;
 
-            Timer t = new Timer { Interval = 1000 };
-            t.Tick += (s, e) =>
-            {
-                string[] args = Environment.GetCommandLineArgs();
-                args = args.Skip(1).ToArray();
-                if (args.Length > 1)
-                {
-                    this.State = args.GetArgumentValue<ProgramState>("--state", (ProgramState)settings.State);
-                }
 
-                t.Dispose();
-            };
-            t.Start();
         }
 
         #endregion Public Constructors
