@@ -434,7 +434,7 @@ namespace Mechvibes.CSharp
                     while (newSelectedIndex == cmbSelectedSoundPack.SelectedIndex)
                     {
                         newSelectedIndex = Generate.RandomNumber(0, cmbSelectedSoundPack.Items.Count);
-                        settings.Pack = ActivatePack(cmbSelectedSoundPack.Items[newSelectedIndex].ToString()).Name;
+                        settings.Pack = cmbSelectedSoundPack.Items[newSelectedIndex].ToString();
                     }
 
                 }
@@ -447,6 +447,7 @@ namespace Mechvibes.CSharp
 
             numVolume.Value = settings.Volume;
             trckVolume.Value = settings.Volume;
+            checkBox1.Checked = settings.Random;
 
             settings.Save();
 
