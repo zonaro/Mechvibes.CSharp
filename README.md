@@ -6,15 +6,22 @@ A C# remake of Mechvibes, with compatibility of the soundpacks so that you can l
 The currently set information in the program is saved when it's closed.
 ```json
 {
-    "pack": "SOUNDPACK_NAME",
-    "volume": "PACK_VOLUME"
+    "pack":"SOUNDPACK_NAME",
+    "volume":100,
+    "random":true,
+    "state":2
 }
 ```
 Definitions:
-  * `SOUNDPACK_NAME`: The name used to identify the soundpack you'd like to load in the program.
+  * `pack`: The name used to identify the soundpack you'd like to load in the program.
     * Default is `CherryMX Black - ABS keycaps`
-  * `PACK_VOLUME`: The volume of the soundpack when a key is pressed (can be modified during runtime in the program).
-    * Default is `50`
+  * `volume`: The volume of the soundpack when a key is pressed (can be modified during runtime in the program). Default is `50`
+  * `random`: When true, select a random pack on start
+  * `state` The default state:
+    * **0 - Normal** - Normal Window
+    * **1 - Minimized** - Minimized
+    * **2 - MinimizedToTray** - Minimized to tray
+      * Set the value using "--state n" as arguments
 
 ## Download
 [Release](https://github.com/zonaro/Mechvibes.CSharp/releases)
