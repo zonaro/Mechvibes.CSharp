@@ -190,11 +190,11 @@ namespace Mechvibes.CSharp
                 {
                     if (CurrentSoundPack.IsMultikeyPack)
                     {
-                        PlayAudio(CurrentSoundPack.GetBindedAudio(Keymap.GetSoundPackKey(e.KeyCode, false)), settings.Volume);
+                        PlayAudio(CurrentSoundPack.GetBindedAudio(Keymap.GetSoundPackKey(e.KeyCode, false)), Program.settings.Volume);
                     }
                     else
                     {
-                        PlayTrimmedAudio(CurrentSoundPack.AudioFilePath, settings.Volume, CurrentSoundPack.GetKeyMap(Keymap.GetSoundPackKey(e.KeyCode, false)));
+                        PlayTrimmedAudio(CurrentSoundPack.AudioFilePath, Program.settings.Volume, CurrentSoundPack.GetKeyMap(Keymap.GetSoundPackKey(e.KeyCode, false)));
                     }
 
                     prevKey = e.KeyCode;
@@ -254,13 +254,13 @@ namespace Mechvibes.CSharp
         private void MinimizeToSystemTray(object sender, EventArgs e)
         {
             State = ProgramState.MinimizedToTray;
-            settings.Save();
+            Program.settings.Save();
         }
 
         private void MinimizeWindow(object sender, EventArgs e)
         {
             State = ProgramState.Minimized;
-            settings.Save();
+            Program.settings.Save();
         }
 
         private void OpenSoundEditor(object sender, EventArgs e)
@@ -353,8 +353,8 @@ namespace Mechvibes.CSharp
             else if (sender == numVolume)
                 trckVolume.Value = numVolume.Value.RoundInt();
 
-            settings.Volume = trckVolume.Value;
-            settings.Save();
+            Program.settings.Volume = trckVolume.Value;
+            Program.settings.Save();
         }
 
         #endregion Private Methods
@@ -398,7 +398,7 @@ namespace Mechvibes.CSharp
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-            settings.Save();
+            Program.settings.Save();
             trayicon.Visible = false;
             trayicon.Dispose();
         }
@@ -407,7 +407,7 @@ namespace Mechvibes.CSharp
         {
             base.OnLoad(e);
 
-            settings = settings.Load();
+
             DownloadDefaultPacks();
 
             IKeyboardMouseEvents hook = Hook.GlobalEvents();
@@ -416,40 +416,40 @@ namespace Mechvibes.CSharp
 
             FormClosing += (s, ee) =>
             {
-                settings.Pack = cmbSelectedSoundPack.Text;
-                settings.Volume = numVolume.Value.RoundInt();
-                settings.Save();
+                Program.settings.Pack = cmbSelectedSoundPack.Text;
+                Program.settings.Volume = numVolume.Value.RoundInt();
+                Program.settings.Save();
                 hook.KeyDown -= Keyboard_KeyDown;
                 hook.KeyUp -= Keyboard_KeyUp;
                 hook.Dispose();
             };
 
-            settings.Pack = settings.Pack.IfBlank("CherryMX Black - ABS keycaps");
+            Program.settings.Pack = Program.settings.Pack.IfBlank("CherryMX Black - ABS keycaps");
 
-            if (soundpacks.Any(soundpack => soundpack.Name == settings.Pack))
+            if (soundpacks.Any(soundpack => soundpack.Name == Program.settings.Pack))
             {
-                if (settings.Random)
+                if (Program.settings.Random)
                 {
                     int newSelectedIndex = cmbSelectedSoundPack.SelectedIndex;
                     while (newSelectedIndex == cmbSelectedSoundPack.SelectedIndex)
                     {
-                        newSelectedIndex = Generate.RandomNumber(0, cmbSelectedSoundPack.Items.Count);
-                        settings.Pack = cmbSelectedSoundPack.Items[newSelectedIndex].ToString();
+                        newSelectedIndex = Generate.RandomNumber(0, cmbSelectedSoundPack.Items.Count - 1);
+                        Program.settings.Pack = cmbSelectedSoundPack.Items[newSelectedIndex].ToString();
                     }
 
                 }
 
-                cmbSelectedSoundPack.Text = ActivatePack(settings.Pack).Name;
+                cmbSelectedSoundPack.Text = ActivatePack(Program.settings.Pack).Name;
             }
 
-            settings.Volume = settings.Volume.LimitRange(1, 100);
+            Program.settings.Volume = Program.settings.Volume.LimitRange(1, 100);
 
 
-            numVolume.Value = settings.Volume;
-            trckVolume.Value = settings.Volume;
-            checkBox1.Checked = settings.Random;
+            numVolume.Value = Program.settings.Volume;
+            trckVolume.Value = Program.settings.Volume;
+            checkBox1.Checked = Program.settings.Random;
 
-            settings.Save();
+            Program.settings.Save();
 
             fileSystemWatcher1.Created += (s, f) =>
             {
@@ -469,14 +469,14 @@ namespace Mechvibes.CSharp
             fileSystemWatcher1.Path = SoundPacksPath;
             fileSystemWatcher1.EnableRaisingEvents = true;
 
-            var t = new Timer() { Interval = 2000 };
+            var t = new Timer() { Interval = 1000 };
             t.Tick += (s, te) =>
             {
                 string[] args = Environment.GetCommandLineArgs();
                 args = args.Skip(1).ToArray();
                 if (args.Length > 1)
                 {
-                    this.State = args.GetArgumentValue("--state", settings.State.GetEnumValue<ProgramState>());
+                    this.State = args.GetArgumentValue("--state", Program.settings.State.GetEnumValue<ProgramState>());
                 }
                 t.Dispose();
             };
@@ -508,7 +508,6 @@ namespace Mechvibes.CSharp
 
         internal static readonly List<SoundPack> soundpacks = new List<SoundPack>();
         internal readonly string SoundPacksPath = $"{Application.StartupPath}\\SoundPacks";
-        internal Settings settings = new Settings();
 
         #endregion Internal Fields
 
@@ -523,7 +522,7 @@ namespace Mechvibes.CSharp
         internal SoundPack ActivatePack(string Text)
         {
             var pk = soundpacks.Each(x => x.Active = x.Name == Text).FirstOrDefault(x => x.Active);
-            settings.Save();
+            Program.settings.Save();
             return pk;
         }
 
@@ -604,8 +603,8 @@ namespace Mechvibes.CSharp
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            settings.Random = checkBox1.Checked;
-            settings.Save();
+            Program.settings.Random = checkBox1.Checked;
+            Program.settings.Save();
         }
     }
 }

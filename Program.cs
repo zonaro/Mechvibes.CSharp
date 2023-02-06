@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InnerLibs;
+using System;
 using System.Windows.Forms;
 
 namespace Mechvibes.CSharp
@@ -11,6 +12,7 @@ namespace Mechvibes.CSharp
 
         #endregion Private Fields
 
+        internal static Settings settings = new Settings();
 
 
         #region Private Methods
@@ -25,6 +27,9 @@ namespace Mechvibes.CSharp
             Application.SetCompatibleTextRenderingDefault(false);
 
             frm_MainWindow = new MainForm();
+
+            Program.settings = Program.settings.Load();
+
             Application.Run(frm_MainWindow);
         }
 
