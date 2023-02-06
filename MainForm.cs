@@ -1,7 +1,7 @@
 ﻿using Gma.System.MouseKeyHook;
 using InnerLibs;
 using InnerLibs.Console;
-using InnerLibs.LINQ;
+
 using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -236,7 +236,7 @@ namespace Mechvibes.CSharp
                     cmbSelectedSoundPack.SelectedIndex = 0;
                 }
 
-                label2.Text = $"{InnerLibs.Text.QuantifyText($"{cmbSelectedSoundPack.Items.Count} packs")} Installed";
+                label2.Text = $"{Util.QuantifyText($"{cmbSelectedSoundPack.Items.Count} packs")} Installed";
             }
             catch (Exception)
             {
@@ -433,7 +433,7 @@ namespace Mechvibes.CSharp
                     int newSelectedIndex = cmbSelectedSoundPack.SelectedIndex;
                     while (newSelectedIndex == cmbSelectedSoundPack.SelectedIndex)
                     {
-                        newSelectedIndex = Generate.RandomNumber(0, cmbSelectedSoundPack.Items.Count - 1);
+                        newSelectedIndex = Util.RandomNumber(0, cmbSelectedSoundPack.Items.Count - 1);
                         Program.settings.Pack = cmbSelectedSoundPack.Items[newSelectedIndex].ToString();
                     }
 
