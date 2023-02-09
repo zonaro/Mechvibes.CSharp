@@ -1,11 +1,4 @@
-﻿using Gma.System.MouseKeyHook;
-using InnerLibs;
-using InnerLibs.Console;
-
-using Microsoft.Win32;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -15,7 +8,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Gma.System.MouseKeyHook;
+using InnerLibs;
+using InnerLibs.Console;
+using IWshRuntimeLibrary;
+using Microsoft.Win32;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 namespace Mechvibes.CSharp
 {
     public partial class MainForm : Form
@@ -54,6 +53,11 @@ namespace Mechvibes.CSharp
         {
             Process.Start("https://docs.google.com/spreadsheets/d/1PimUN_Qn3CWqfn-93YdVW8OWy8nzpz3w3me41S8S494/edit#gid=0");
         }
+
+
+
+
+
 
         private bool CheckAeroEnabled()
         {
@@ -236,7 +240,7 @@ namespace Mechvibes.CSharp
                     cmbSelectedSoundPack.SelectedIndex = 0;
                 }
 
-                label2.Text = $"{Util.QuantifyText($"{cmbSelectedSoundPack.Items.Count} packs")} Installed";
+                label2.Text = $"{Ext.QuantifyText($"{cmbSelectedSoundPack.Items.Count} packs")} Installed";
             }
             catch (Exception)
             {
@@ -433,7 +437,7 @@ namespace Mechvibes.CSharp
                     int newSelectedIndex = cmbSelectedSoundPack.SelectedIndex;
                     while (newSelectedIndex == cmbSelectedSoundPack.SelectedIndex)
                     {
-                        newSelectedIndex = Util.RandomNumber(0, cmbSelectedSoundPack.Items.Count - 1);
+                        newSelectedIndex = Ext.RandomNumber(0, cmbSelectedSoundPack.Items.Count - 1);
                         Program.settings.Pack = cmbSelectedSoundPack.Items[newSelectedIndex].ToString();
                     }
 
@@ -605,6 +609,37 @@ namespace Mechvibes.CSharp
         {
             Program.settings.Random = checkBox1.Checked;
             Program.settings.Save();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Get the startup folder path
+                string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                var targetPath = Application.ExecutablePath;
+                var shortcutName = Path.GetFileNameWithoutExtension(targetPath);
+                var shortcutPath = Path.Combine(startupFolderPath, shortcutName + ".lnk");
+
+                new FileInfo(shortcutPath).DeleteIfExist();
+                // Create a new shortcut in the startup folder
+                WshShell shell = new WshShell();
+                IWshShortcut shortcut = shell.CreateShortcut(shortcutPath) as IWshShortcut;
+
+                // Set the shortcut properties
+                shortcut.TargetPath = targetPath;
+                shortcut.Arguments = "--state 2";
+                shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
+
+                // Save the shortcut
+                shortcut.Save();
+                MessageBox.Show("Shortcut Created", lblTitle.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToFullExceptionString().Prepend("Error on create shortcut: "), lblTitle.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
     }
 }
